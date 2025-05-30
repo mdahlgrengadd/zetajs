@@ -12,6 +12,17 @@
     "example": "examples",
     "test": "test"
   },
+  "files": [
+    "/CHANGELOG.md",
+    "/LICENSE",
+    "/source/zeta.js",
+    "/source/zetaHelper.js"
+  ],
+  "keywords": [
+    "typescript",
+    "libreoffice",
+    "office"
+  ],
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
