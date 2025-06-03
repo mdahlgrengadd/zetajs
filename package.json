@@ -18,11 +18,6 @@
     "/source/zeta.js",
     "/source/zetaHelper.js"
   ],
-  "keywords": [
-    "typescript",
-    "libreoffice",
-    "office"
-  ],
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
@@ -35,9 +30,13 @@
   },
   "keywords": [
     "libreoffice",
+    "office",
     "zetaoffice",
+    "allotropia",
+    "collabora",
     "wasm",
-    "lowa"
+    "lowa",
+    "typescript"
   ],
   "author": "allotropia software GmbH",
   "license": "MIT",
