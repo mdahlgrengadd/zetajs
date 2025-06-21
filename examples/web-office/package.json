@@ -1,11 +1,10 @@
 {
   "name": "web-office",
   "version": "1.0.0",
-  "description": "An example of how to run a full ZetaOffice / LibreOffice in the web browser.",
-  "scripts": {
-    "start": "node_modules/.bin/gulp start",
-    "debug": "node_modules/.bin/gulp debug",
-    "dist": "node_modules/.bin/gulp",
+  "description": "An example of how to run a full ZetaOffice / LibreOffice in the web browser.",  "scripts": {
+    "start": "npx gulp start",
+    "debug": "npx gulp debug",
+    "dist": "npx gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "allotropia software GmbH",
