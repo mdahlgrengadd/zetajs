@@ -4,41 +4,18 @@
 import { ZetaHelperMain } from "./assets/vendor/zetajs/zetaHelper.js";
 
 let tbDataJs; // toolbar dataset passed from React for plain JS
-let letterForeground = true;
-let data = [];
 
 const loadingInfo = document.getElementById("loadingInfo");
 const canvas = document.getElementById("qtcanvas");
 const controlbar = document.getElementById("controlbar");
 const controlCell = document.getElementById("controlCell");
-const addrNameCell = document.getElementById("addrNameCell");
 const canvasCell = document.getElementById("canvasCell");
-const btnLetter = document.getElementById("btnLetter");
-const btnTable = document.getElementById("btnTable");
 const lblUpload = document.getElementById("lblUpload");
 const btnUpload = document.getElementById("btnUpload");
 const btnReload = document.getElementById("btnReload");
-const btnInsert = document.getElementById("btnInsert");
-const addrName = document.getElementById("addrName");
-const disabledElementsAry = [
-  btnLetter,
-  btnTable,
-  btnUpload,
-  btnReload,
-  btnInsert,
-  addrName,
-];
+const disabledElementsAry = [btnUpload, btnReload];
 const canvas_height = parseInt(canvas.style.height);
 const canvas_width = parseInt(canvas.style.width);
-
-// Initialize canvas display state - start with letter view
-document.addEventListener("DOMContentLoaded", () => {
-  const letterCanvas = document.getElementById("qtcanvas");
-  const tableCanvas = document.getElementById("qtcanvas-table");
-
-  if (letterCanvas) letterCanvas.style.display = "block";
-  if (tableCanvas) tableCanvas.style.display = "none";
-});
 
 // IMPORTANT:
 // Set base URL to the soffice.* files.
@@ -85,97 +62,6 @@ function setToolbarActive(id, value) {
   }
 }
 
-window.btnSwitchTab = (tab) => {
-  // window....: make it accessible to React
-  console.log("btnSwitchTab called with:", tab);
-
-  if (tab === "letter") {
-    letterForeground = true;
-    btnLetter?.classList.add("active");
-    btnTable?.classList.remove("active");
-    if (controlbar) controlbar.style.display = null;
-    if (btnUpload) btnUpload.accept = ".odt";
-    lblUpload?.classList.remove("btn-primary");
-    lblUpload?.classList.add("btn-light");
-    if (btnInsert) btnInsert.disabled = false;
-    if (addrNameCell) addrNameCell.style.display = null;
-    if (addrName) addrName.style.visibility = null;
-    btnReload?.classList.remove("mt-2");
-    btnReload?.classList.add("ms-2");
-    canvasCell?.classList.remove("col-lg-10");
-    canvasCell?.classList.add("col-lg-9");
-    controlCell?.classList.remove("col-lg-2");
-    controlCell?.classList.add("col-lg-3");
-
-    // Switch to letter canvas
-    const letterCanvas = document.getElementById("qtcanvas");
-    const tableCanvas = document.getElementById("qtcanvas-table");
-    const letterLoading = document.getElementById("loadingInfo");
-    const tableLoading = document.getElementById("loadingInfo-table");
-
-    if (letterCanvas && tableCanvas) {
-      letterCanvas.style.display = "block";
-      tableCanvas.style.display = "none";
-    }
-
-    if (letterLoading && tableLoading) {
-      letterLoading.style.display =
-        letterCanvas && letterCanvas.style.visibility === "hidden"
-          ? "block"
-          : "none";
-      tableLoading.style.display = "none";
-    }
-
-    if (letterCanvas) {
-      letterCanvas.style.height = canvas_height + "px";
-      letterCanvas.style.width = canvas_width + "px";
-    }
-  } else {
-    // table
-    letterForeground = false;
-    btnLetter?.classList.remove("active");
-    btnTable?.classList.add("active");
-    if (controlbar) controlbar.style.display = "none";
-    if (btnUpload) btnUpload.accept = ".ods";
-    lblUpload?.classList.add("btn-primary");
-    lblUpload?.classList.remove("btn-light");
-    if (btnInsert) btnInsert.disabled = true;
-    if (addrNameCell) addrNameCell.style.display = "none";
-    if (addrName) addrName.style.visibility = "hidden";
-    btnReload?.classList.remove("ms-2");
-    btnReload?.classList.add("mt-2");
-    canvasCell?.classList.remove("col-lg-9");
-    canvasCell?.classList.add("col-lg-10");
-    controlCell?.classList.remove("col-lg-3");
-    controlCell?.classList.add("col-lg-2");
-
-    // Switch to table canvas
-    const letterCanvas = document.getElementById("qtcanvas");
-    const tableCanvas = document.getElementById("qtcanvas-table");
-    const letterLoading = document.getElementById("loadingInfo");
-    const tableLoading = document.getElementById("loadingInfo-table");
-
-    if (letterCanvas && tableCanvas) {
-      letterCanvas.style.display = "none";
-      tableCanvas.style.display = "block";
-    }
-
-    if (letterLoading && tableLoading) {
-      letterLoading.style.display = "none";
-      tableLoading.style.display =
-        tableCanvas && tableCanvas.style.visibility === "hidden"
-          ? "block"
-          : "none";
-    }
-
-    if (tableCanvas) {
-      tableCanvas.style.height = canvas_height + 46 + "px";
-      tableCanvas.style.width = canvas_width + 100 + "px";
-    }
-  }
-  zHM.thrPort.postMessage({ cmd: "switch_tab", id: tab });
-};
-
 window.btnDownloadFunc = (btnId) => {
   // window....: make it accessible to React
   zHM.thrPort.postMessage({ cmd: "download", id: btnId });
@@ -185,7 +71,7 @@ window.btnUploadFunc = () => {
   // window....: make it accessible to React
   for (const elem of disabledElementsAry) elem.disabled = true;
   lblUpload?.classList.add("disabled");
-  const filename = letterForeground ? "letter.odt" : "table.ods";
+  const filename = "letter.odt";
   btnUpload.files[0].arrayBuffer().then((aryBuf) => {
     zHM.FS.writeFile("/tmp/" + filename, new Uint8Array(aryBuf));
     btnReloadFunc();
@@ -198,36 +84,7 @@ window.btnReloadFunc = () => {
   lblUpload?.classList.add("disabled");
   if (loadingInfo) loadingInfo.style.display = null;
   if (canvas) canvas.style.visibility = "hidden";
-  zHM.thrPort.postMessage({ cmd: "reload", id: letterForeground });
-};
-
-window.btnInsertFunc = () => {
-  // window....: make it accessible to React
-  console.log("btnInsertFunc called");
-  if (window.reactAppComponent) {
-    const { selectedAddress, addressData } = window.reactAppComponent;
-    console.log(
-      "selectedAddress:",
-      selectedAddress,
-      "addressData length:",
-      addressData.length
-    );
-    if (selectedAddress >= 0 && selectedAddress < addressData.length) {
-      const recipient = addressData[selectedAddress];
-      console.log("Inserting recipient:", recipient);
-      zHM.thrPort.postMessage({ cmd: "insertAddress", recipient });
-    } else {
-      console.log(
-        "No valid address selected, selectedAddress:",
-        selectedAddress
-      );
-    }
-  } else if (addrName && addrName.selectedIndex != -1) {
-    // Fallback to original logic
-    const recipient = data[addrName.selectedIndex];
-    console.log("Fallback: inserting recipient:", recipient);
-    zHM.thrPort.postMessage({ cmd: "insertAddress", recipient });
-  }
+  zHM.thrPort.postMessage({ cmd: "reload", id: true });
 };
 
 async function getDataFile(file_url) {
@@ -246,29 +103,12 @@ zHM.start(() => {
         window.dispatchEvent(new Event("resize"));
         setTimeout(() => {
           // display Office UI properly
-          console.log("Enabling toolbar and UI elements");
-
-          // Handle loading info and canvas visibility
-          const currentCanvas = letterForeground
-            ? document.getElementById("qtcanvas")
-            : document.getElementById("qtcanvas-table");
-          const currentLoading = letterForeground
-            ? document.getElementById("loadingInfo")
-            : document.getElementById("loadingInfo-table");
+          console.log("Enabling toolbar and UI elements"); // Handle loading info and canvas visibility - word editor only
+          const currentCanvas = document.getElementById("qtcanvas");
+          const currentLoading = document.getElementById("loadingInfo");
 
           if (currentLoading) currentLoading.style.display = "none";
           if (currentCanvas) currentCanvas.style.visibility = null;
-
-          // Hide the other canvas
-          const otherCanvas = letterForeground
-            ? document.getElementById("qtcanvas-table")
-            : document.getElementById("qtcanvas");
-          const otherLoading = letterForeground
-            ? document.getElementById("loadingInfo-table")
-            : document.getElementById("loadingInfo");
-
-          if (otherCanvas) otherCanvas.style.display = "none";
-          if (otherLoading) otherLoading.style.display = "none";
 
           if (tbDataJs && tbDataJs.setState) {
             tbDataJs.setState((prevState) => ({
@@ -286,27 +126,12 @@ zHM.start(() => {
             if (elem) elem.disabled = false;
           }
           lblUpload?.classList.remove("disabled");
-          if (btnInsert) btnInsert.disabled = !letterForeground;
+          // Remove btnInsert reference since we removed address functionality
           console.log("All UI elements enabled");
         }, 1000); // milliseconds
         break;
       case "resizeEvt":
         window.dispatchEvent(new Event("resize"));
-        break;
-      case "addrData":
-        data = e.data.data;
-        console.log("Address data received:", data);
-        // Update React component if available
-        if (
-          window.reactAppComponent &&
-          window.reactAppComponent.setAddressData
-        ) {
-          console.log("Updating React component with address data");
-          window.reactAppComponent.setAddressData(data);
-          // Let React handle setting the selectedAddress through useEffect        console.log('Address data passed to React component');
-        }
-
-        // Note: We no longer update the traditional select element since React handles it
         break;
       case "setFormat":
         setToolbarActive(e.data.id, e.data.state);
@@ -328,12 +153,8 @@ zHM.start(() => {
         throw Error("Unknown message command: " + e.data.cmd);
     }
   };
-
   getDataFile("./letter.odt").then((aryBuf) => {
     zHM.FS.writeFile("/tmp/letter.odt", new Uint8Array(aryBuf));
-  });
-  getDataFile("./table.ods").then((aryBuf) => {
-    zHM.FS.writeFile("/tmp/table.ods", new Uint8Array(aryBuf));
   });
 });
 

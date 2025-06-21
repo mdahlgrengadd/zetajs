@@ -1,9 +1,9 @@
-# A ZetaJS Letter Address Tool (Writer Demo using React + shadcn/ui + Tailwind CSS)
+# A ZetaJS Word Editor (Writer Demo using React + shadcn/ui + Tailwind CSS)
 
-An example of a Web form letter demo, using a stripped-down, standalone Writer document canvas
+An example of a Web word processor demo, using a stripped-down, standalone Writer document canvas
 without any surrounding menubars, toolbars, side panels, etc. This version uses React with shadcn/ui components and Tailwind CSS for styling.
 
-[online demo](https://zetaoffice.net/demos/letter-address-react/)
+[online demo](https://zetaoffice.net/demos/word-editor-react/)
 
 For React development you'll need nodejs and npm.
 
