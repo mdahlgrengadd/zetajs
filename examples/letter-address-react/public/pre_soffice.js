@@ -48,13 +48,21 @@ function updateCanvasSize() {
   canvas.style.height = dimensions.height + "px";
 }
 
-// Update canvas size on window resize
-window.addEventListener("resize", () => {
-  updateCanvasSize();
-  // Trigger ZetaJS resize event
-  setTimeout(() => {
-    window.dispatchEvent(new Event("resize"));
-  }, 100);
+// Update canvas size on window resize with debouncing
+let resizeTimeout;
+let isResizing = false;
+window.addEventListener("resize", (event) => {
+  // Only handle actual window resize events, not programmatic ones
+  if (event.isTrusted && !isResizing) {
+    updateCanvasSize();
+    // Debounce resize events to reduce noise
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      isResizing = true;
+      window.dispatchEvent(new Event("resize"));
+      setTimeout(() => { isResizing = false; }, 100);
+    }, 150);
+  }
 });
 
 // Set initial canvas size
@@ -183,12 +191,9 @@ async function getDataFile(file_url) {
 
 zHM.start(() => {
   zHM.thrPort.onmessage = (e) => {
-    switch (e.data.cmd) {
-      case "ui_ready":
+    switch (e.data.cmd) {      case "ui_ready":
         console.log("UI ready event received");
         // Trigger resize of the embedded window to match the canvas size.
-        // May somewhen be obsoleted by:
-        //   https://gerrit.libreoffice.org/c/core/+/174040
         window.dispatchEvent(new Event("resize"));
         setTimeout(() => {
           // display Office UI properly
@@ -204,10 +209,6 @@ zHM.start(() => {
           if (currentCanvas) {
             currentCanvas.style.visibility = null;
             console.log("Canvas made visible");
-            // Force a repaint of the canvas
-            currentCanvas.style.display = "none";
-            currentCanvas.offsetHeight; // Trigger reflow
-            currentCanvas.style.display = "";
           }
 
           if (tbDataJs && tbDataJs.setState) {
@@ -226,17 +227,7 @@ zHM.start(() => {
             if (elem) elem.disabled = false;
           }
           lblUpload?.classList.remove("disabled");
-          console.log("All UI elements enabled");
-
-          // Force another resize event to ensure proper display
-          setTimeout(() => {
-            window.dispatchEvent(new Event("resize"));
-            console.log("Final resize event dispatched");
-          }, 500);
-        }, 1000); // milliseconds
-        break;
-      case "resizeEvt":
-        window.dispatchEvent(new Event("resize"));
+          console.log("All UI elements enabled");        }, 1000); // milliseconds
         break;
       case "setFormat":
         setToolbarActive(e.data.id, e.data.state);
