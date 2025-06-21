@@ -1,27 +1,28 @@
-# A ZetaJS Word Editor (Writer Demo using React + shadcn/ui + Tailwind CSS)
+# ZetaJS Word Editor - React Demo
 
-An example of a Web word processor demo, using a stripped-down, standalone Writer document canvas
-without any surrounding menubars, toolbars, side panels, etc. This version uses React with shadcn/ui components and Tailwind CSS for styling.
+A fully self-contained ZetaJS word editor application built with React, shadcn/ui, and Tailwind CSS. This is a standalone word processor focused on text editing and formatting functionality.
 
 [online demo](https://zetaoffice.net/demos/word-editor-react/)
 
+**Key Features:**
+
+- Responsive word editor canvas that adapts to browser window size
+- Enhanced toolbar with formatting controls (Bold, Italic, Underline, Font Size, etc.)
+- File upload and save functionality
+- Self-contained - no external dependencies on parent ZetaJS project
+- Clean, modern UI with shadcn/ui components
+
 For React development you'll need nodejs and npm.
-
-# React + shadcn/ui + Tailwind CSS
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ## Project Setup
 
-First, install the dependencies:
+Install the dependencies:
 
 ```sh
 npm install
 ```
 
-The project includes an automatic build step that copies the required ZetaJS files from the main source directory. This happens automatically when you run any of the development or build commands.
+This project is fully self-contained and includes all necessary ZetaJS runtime files.
 
 ### Compile and Hot-Reload for Development
 
@@ -35,8 +36,9 @@ npm start
 npm run build
 ```
 
-The following HTTP headers must be set in the web server configuration.
-```
+The following HTTP headers must be set in the web server configuration:
+
+```text
 Cross-Origin-Opener-Policy "same-origin"
 Cross-Origin-Embedder-Policy "require-corp"
 ```

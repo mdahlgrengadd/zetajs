@@ -60,7 +60,9 @@ window.addEventListener("resize", (event) => {
     resizeTimeout = setTimeout(() => {
       isResizing = true;
       window.dispatchEvent(new Event("resize"));
-      setTimeout(() => { isResizing = false; }, 100);
+      setTimeout(() => {
+        isResizing = false;
+      }, 100);
     }, 150);
   }
 });
@@ -191,7 +193,8 @@ async function getDataFile(file_url) {
 
 zHM.start(() => {
   zHM.thrPort.onmessage = (e) => {
-    switch (e.data.cmd) {      case "ui_ready":
+    switch (e.data.cmd) {
+      case "ui_ready":
         console.log("UI ready event received");
         // Trigger resize of the embedded window to match the canvas size.
         window.dispatchEvent(new Event("resize"));
@@ -227,7 +230,8 @@ zHM.start(() => {
             if (elem) elem.disabled = false;
           }
           lblUpload?.classList.remove("disabled");
-          console.log("All UI elements enabled");        }, 1000); // milliseconds
+          console.log("All UI elements enabled");
+        }, 1000); // milliseconds
         break;
       case "setFormat":
         setToolbarActive(e.data.id, e.data.state);
