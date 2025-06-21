@@ -87,6 +87,10 @@
   outline: 1px solid hsl(var(--border));
 }
 
+#qtcanvas-table {
+  display: none;
+}
+
 .file-input {
   display: none;
 }

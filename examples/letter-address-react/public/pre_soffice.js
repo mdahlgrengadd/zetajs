@@ -31,6 +31,15 @@ const disabledElementsAry = [
 const canvas_height = parseInt(canvas.style.height);
 const canvas_width = parseInt(canvas.style.width);
 
+// Initialize canvas display state - start with letter view
+document.addEventListener("DOMContentLoaded", () => {
+  const letterCanvas = document.getElementById("qtcanvas");
+  const tableCanvas = document.getElementById("qtcanvas-table");
+
+  if (letterCanvas) letterCanvas.style.display = "block";
+  if (tableCanvas) tableCanvas.style.display = "none";
+});
+
 // IMPORTANT:
 // Set base URL to the soffice.* files.
 // Use an empty string if those files are in the same directory.
@@ -66,18 +75,20 @@ window.toggleFormatting = (id, value) => {
 
 function setToolbarActive(id, value) {
   if (tbDataJs && tbDataJs.setState) {
-    tbDataJs.setState(prevState => ({
+    tbDataJs.setState((prevState) => ({
       ...prevState,
       active: {
         ...prevState.active,
-        [id]: value
-      }
+        [id]: value,
+      },
     }));
   }
 }
 
 window.btnSwitchTab = (tab) => {
   // window....: make it accessible to React
+  console.log("btnSwitchTab called with:", tab);
+
   if (tab === "letter") {
     letterForeground = true;
     btnLetter?.classList.add("active");
@@ -95,9 +106,29 @@ window.btnSwitchTab = (tab) => {
     canvasCell?.classList.add("col-lg-9");
     controlCell?.classList.remove("col-lg-2");
     controlCell?.classList.add("col-lg-3");
-    if (canvas) {
-      canvas.style.height = canvas_height + "px";
-      canvas.style.width = canvas_width + "px";
+
+    // Switch to letter canvas
+    const letterCanvas = document.getElementById("qtcanvas");
+    const tableCanvas = document.getElementById("qtcanvas-table");
+    const letterLoading = document.getElementById("loadingInfo");
+    const tableLoading = document.getElementById("loadingInfo-table");
+
+    if (letterCanvas && tableCanvas) {
+      letterCanvas.style.display = "block";
+      tableCanvas.style.display = "none";
+    }
+
+    if (letterLoading && tableLoading) {
+      letterLoading.style.display =
+        letterCanvas && letterCanvas.style.visibility === "hidden"
+          ? "block"
+          : "none";
+      tableLoading.style.display = "none";
+    }
+
+    if (letterCanvas) {
+      letterCanvas.style.height = canvas_height + "px";
+      letterCanvas.style.width = canvas_width + "px";
     }
   } else {
     // table
@@ -117,9 +148,29 @@ window.btnSwitchTab = (tab) => {
     canvasCell?.classList.add("col-lg-10");
     controlCell?.classList.remove("col-lg-3");
     controlCell?.classList.add("col-lg-2");
-    if (canvas) {
-      canvas.style.height = canvas_height + 46 + "px";
-      canvas.style.width = canvas_width + 100 + "px";
+
+    // Switch to table canvas
+    const letterCanvas = document.getElementById("qtcanvas");
+    const tableCanvas = document.getElementById("qtcanvas-table");
+    const letterLoading = document.getElementById("loadingInfo");
+    const tableLoading = document.getElementById("loadingInfo-table");
+
+    if (letterCanvas && tableCanvas) {
+      letterCanvas.style.display = "none";
+      tableCanvas.style.display = "block";
+    }
+
+    if (letterLoading && tableLoading) {
+      letterLoading.style.display = "none";
+      tableLoading.style.display =
+        tableCanvas && tableCanvas.style.visibility === "hidden"
+          ? "block"
+          : "none";
+    }
+
+    if (tableCanvas) {
+      tableCanvas.style.height = canvas_height + 46 + "px";
+      tableCanvas.style.width = canvas_width + 100 + "px";
     }
   }
   zHM.thrPort.postMessage({ cmd: "switch_tab", id: tab });
@@ -152,8 +203,29 @@ window.btnReloadFunc = () => {
 
 window.btnInsertFunc = () => {
   // window....: make it accessible to React
-  if (addrName && addrName.selectedIndex != -1) {
+  console.log("btnInsertFunc called");
+  if (window.reactAppComponent) {
+    const { selectedAddress, addressData } = window.reactAppComponent;
+    console.log(
+      "selectedAddress:",
+      selectedAddress,
+      "addressData length:",
+      addressData.length
+    );
+    if (selectedAddress >= 0 && selectedAddress < addressData.length) {
+      const recipient = addressData[selectedAddress];
+      console.log("Inserting recipient:", recipient);
+      zHM.thrPort.postMessage({ cmd: "insertAddress", recipient });
+    } else {
+      console.log(
+        "No valid address selected, selectedAddress:",
+        selectedAddress
+      );
+    }
+  } else if (addrName && addrName.selectedIndex != -1) {
+    // Fallback to original logic
     const recipient = data[addrName.selectedIndex];
+    console.log("Fallback: inserting recipient:", recipient);
     zHM.thrPort.postMessage({ cmd: "insertAddress", recipient });
   }
 };
@@ -166,74 +238,102 @@ async function getDataFile(file_url) {
 zHM.start(() => {
   zHM.thrPort.onmessage = (e) => {
     switch (e.data.cmd) {
-    case 'ui_ready':
-      console.log('UI ready event received');
-      // Trigger resize of the embedded window to match the canvas size.
-      // May somewhen be obsoleted by:
-      //   https://gerrit.libreoffice.org/c/core/+/174040
-      window.dispatchEvent(new Event('resize'));
-      setTimeout(() => {  // display Office UI properly
-        console.log('Enabling toolbar and UI elements');
-        if (loadingInfo) loadingInfo.style.display = 'none';
-        if (canvas) canvas.style.visibility = null;
-        if (tbDataJs && tbDataJs.setState) {
-          tbDataJs.setState(prevState => ({
-            ...prevState,
-            font_name_list: e.data.fontsList,
-            disabled: false
-          }));
-          console.log('Toolbar enabled, font list:', e.data.fontsList);
-        } else {
-          console.error('tbDataJs is not set! React component may not be connected properly.');
+      case "ui_ready":
+        console.log("UI ready event received");
+        // Trigger resize of the embedded window to match the canvas size.
+        // May somewhen be obsoleted by:
+        //   https://gerrit.libreoffice.org/c/core/+/174040
+        window.dispatchEvent(new Event("resize"));
+        setTimeout(() => {
+          // display Office UI properly
+          console.log("Enabling toolbar and UI elements");
+
+          // Handle loading info and canvas visibility
+          const currentCanvas = letterForeground
+            ? document.getElementById("qtcanvas")
+            : document.getElementById("qtcanvas-table");
+          const currentLoading = letterForeground
+            ? document.getElementById("loadingInfo")
+            : document.getElementById("loadingInfo-table");
+
+          if (currentLoading) currentLoading.style.display = "none";
+          if (currentCanvas) currentCanvas.style.visibility = null;
+
+          // Hide the other canvas
+          const otherCanvas = letterForeground
+            ? document.getElementById("qtcanvas-table")
+            : document.getElementById("qtcanvas");
+          const otherLoading = letterForeground
+            ? document.getElementById("loadingInfo-table")
+            : document.getElementById("loadingInfo");
+
+          if (otherCanvas) otherCanvas.style.display = "none";
+          if (otherLoading) otherLoading.style.display = "none";
+
+          if (tbDataJs && tbDataJs.setState) {
+            tbDataJs.setState((prevState) => ({
+              ...prevState,
+              font_name_list: e.data.fontsList,
+              disabled: false,
+            }));
+            console.log("Toolbar enabled, font list:", e.data.fontsList);
+          } else {
+            console.error(
+              "tbDataJs is not set! React component may not be connected properly."
+            );
+          }
+          for (const elem of disabledElementsAry) {
+            if (elem) elem.disabled = false;
+          }
+          lblUpload?.classList.remove("disabled");
+          if (btnInsert) btnInsert.disabled = !letterForeground;
+          console.log("All UI elements enabled");
+        }, 1000); // milliseconds
+        break;
+      case "resizeEvt":
+        window.dispatchEvent(new Event("resize"));
+        break;
+      case "addrData":
+        data = e.data.data;
+        console.log("Address data received:", data);
+        // Update React component if available
+        if (
+          window.reactAppComponent &&
+          window.reactAppComponent.setAddressData
+        ) {
+          console.log("Updating React component with address data");
+          window.reactAppComponent.setAddressData(data);
+          // Let React handle setting the selectedAddress through useEffect        console.log('Address data passed to React component');
         }
-        for (const elem of disabledElementsAry) {
-          if (elem) elem.disabled = false;
-        }
-        lblUpload?.classList.remove('disabled');
-        if (btnInsert) btnInsert.disabled = !letterForeground;
-        console.log('All UI elements enabled');
-      }, 1000);  // milliseconds
-      break;
-    case 'resizeEvt':
-      window.dispatchEvent(new Event('resize'));
-      break;
-    case 'addrData':
-      data = e.data.data;
-      if (addrName) {
-        addrName.innerHTML = '';
-        for (const recipient of data) {
-          const option = document.createElement('option');
-          option.innerHTML = recipient[1];
-          addrName.appendChild(option);
-        }
-      }
-      break;
-    case 'setFormat':
-      setToolbarActive(e.data.id, e.data.state);
-      break;
-    case 'download':
-      const bytes = zHM.FS.readFile('/tmp/output');
-      const format = e.data.id === 'btnOdt' ? 'odt' : 'pdf';
-      const blob = new Blob([bytes], {type: 'application/' + format});
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'letter.' + format;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-      break;
-    default:
-      throw Error('Unknown message command: ' + e.data.cmd);
+
+        // Note: We no longer update the traditional select element since React handles it
+        break;
+      case "setFormat":
+        setToolbarActive(e.data.id, e.data.state);
+        break;
+      case "download":
+        const bytes = zHM.FS.readFile("/tmp/output");
+        const format = e.data.id === "btnOdt" ? "odt" : "pdf";
+        const blob = new Blob([bytes], { type: "application/" + format });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "letter." + format;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+        break;
+      default:
+        throw Error("Unknown message command: " + e.data.cmd);
     }
   };
 
-  getDataFile('./letter.odt').then((aryBuf) => {
-    zHM.FS.writeFile('/tmp/letter.odt', new Uint8Array(aryBuf));
+  getDataFile("./letter.odt").then((aryBuf) => {
+    zHM.FS.writeFile("/tmp/letter.odt", new Uint8Array(aryBuf));
   });
-  getDataFile('./table.ods').then((aryBuf) => {
-    zHM.FS.writeFile('/tmp/table.ods', new Uint8Array(aryBuf));
+  getDataFile("./table.ods").then((aryBuf) => {
+    zHM.FS.writeFile("/tmp/table.ods", new Uint8Array(aryBuf));
   });
 });
 

@@ -1,22 +1,34 @@
-import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Bold, 
-  Italic, 
-  Underline, 
-  Strikethrough,
-  AlignLeft,
+import {
   AlignCenter,
-  AlignRight,
   AlignJustify,
-  List,
+  AlignLeft,
+  AlignRight,
+  Bold,
   Download,
   FileText,
-  Type,
+  Italic,
+  List,
   Minus,
-  Plus
-} from 'lucide-react'
+  Plus,
+  Strikethrough,
+  Type,
+  Underline,
+} from "lucide-react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 declare global {
   interface Window {
@@ -52,241 +64,247 @@ export interface ControlBarRef {
   setState: React.Dispatch<React.SetStateAction<ControlBarState>>;
 }
 
-export const ControlBar = forwardRef<ControlBarRef, { id?: string }>((props, ref) => {
-  const [state, setState] = useState<ControlBarState>({
-    active: {
-      Bold: false,
-      Italic: false,
-      Underline: false,
-      Overline: false,
-      Strikeout: false,
-      Shadowed: false,
-      Color: "#000000",
-      CharBackColor: "#FFFFFF",
-      FontHeight: 12,
-      CharFontName: "Noto Sans",
-      LeftPara: false,
-      CenterPara: false,
-      RightPara: false,
-      JustifyPara: false,
-      DefaultBullet: false,
-    },
-    font_name_list: [],
-    disabled: true,
-  });
+export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
+  (props, ref) => {
+    const [state, setState] = useState<ControlBarState>({
+      active: {
+        Bold: false,
+        Italic: false,
+        Underline: false,
+        Overline: false,
+        Strikeout: false,
+        Shadowed: false,
+        Color: "#000000",
+        CharBackColor: "#FFFFFF",
+        FontHeight: 12,
+        CharFontName: "Noto Sans",
+        LeftPara: false,
+        CenterPara: false,
+        RightPara: false,
+        JustifyPara: false,
+        DefaultBullet: false,
+      },
+      font_name_list: [],
+      disabled: true,
+    });
 
-  useImperativeHandle(ref, () => ({
-    state,
-    setState,
-  }));
+    useImperativeHandle(ref, () => ({
+      state,
+      setState,
+    }));
+    useEffect(() => {
+      // Store reference globally so pre_soffice.js can access it
+      window.reactControlBarComponent = { state, setState };
 
-  useEffect(() => {
-    // Store reference globally so pre_soffice.js can access it
-    window.reactControlBarComponent = { state, setState };
+      // Call the global jsPassCtrlBar function once the component is mounted
+      if (window.jsPassCtrlBar) {
+        console.log("Calling jsPassCtrlBar with React component");
+        window.jsPassCtrlBar({ state, setState });
+      } else {
+        console.log(
+          "jsPassCtrlBar not available yet, will be called when pre_soffice.js loads"
+        );
+      }
+    }, []); // Empty dependency array to run only once
 
-    // Call the global jsPassCtrlBar function once the component is mounted
-    if (window.jsPassCtrlBar) {
-      console.log('Calling jsPassCtrlBar with React component');
-      window.jsPassCtrlBar({ state, setState });
-    } else {
-      console.log('jsPassCtrlBar not available yet, will be called when pre_soffice.js loads');
-    }
-  }, [state]);
+    const toggleFormat = (id: string, value: any[] = []) => {
+      if (window.toggleFormatting) {
+        window.toggleFormatting(id, value);
+      }
+    };
 
-  const toggleFormat = (id: string, value: any[] = []) => {
-    if (window.toggleFormatting) {
-      window.toggleFormatting(id, value);
-    }
-  };
+    const downloadFile = (format: string) => {
+      if (window.btnDownloadFunc) {
+        window.btnDownloadFunc(format);
+      }
+    };
 
-  const downloadFile = (format: string) => {
-    if (window.btnDownloadFunc) {
-      window.btnDownloadFunc(format);
-    }
-  };
+    return (
+      <div className="flex flex-wrap items-center gap-2 p-2 border border-border rounded-lg bg-card">
+        {/* Text formatting buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={state.active.Bold ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Bold")}
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
 
-  return (
-    <div className="flex flex-wrap items-center gap-2 p-2 border border-border rounded-lg bg-card">
-      {/* Text formatting buttons */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={state.active.Bold ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Bold')}
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.Italic ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Italic')}
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.Underline ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Underline')}
-        >
-          <Underline className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.Strikeout ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Strikeout')}
-        >
-          <Strikethrough className="h-4 w-4" />
-        </Button>
-      </div>
+          <Button
+            variant={state.active.Italic ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Italic")}
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
 
-      <div className="w-px h-6 bg-border" />
+          <Button
+            variant={state.active.Underline ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Underline")}
+          >
+            <Underline className="h-4 w-4" />
+          </Button>
 
-      {/* Font size controls */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Shrink')}
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        
-        <Select 
-          value={state.active.FontHeight.toString()} 
+          <Button
+            variant={state.active.Strikeout ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Strikeout")}
+          >
+            <Strikethrough className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Font size controls */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Shrink")}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+
+          <Select
+            value={state.active.FontHeight.toString()}
+            disabled={state.disabled}
+            onValueChange={(value) => {
+              const height = parseFloat(value);
+              toggleFormat("FontHeight", [["FontHeight.Height", height]]);
+            }}
+          >
+            <SelectTrigger className="w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[
+                8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 32, 36,
+                48, 72,
+              ].map((size) => (
+                <SelectItem key={size} value={size.toString()}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Grow")}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Font family */}
+        <Select
+          value={state.active.CharFontName}
           disabled={state.disabled}
           onValueChange={(value) => {
-            const height = parseFloat(value);
-            toggleFormat('FontHeight', [['FontHeight.Height', height]]);
+            toggleFormat("CharFontName", [["CharFontName.FamilyName", value]]);
           }}
         >
-          <SelectTrigger className="w-16">
+          <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 32, 36, 48, 72].map(size => (
-              <SelectItem key={size} value={size.toString()}>
-                {size}
+            {state.font_name_list.map((fontName) => (
+              <SelectItem key={fontName} value={fontName}>
+                {fontName}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('Grow')}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Alignment buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={state.active.LeftPara ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("LeftPara")}
+          >
+            <AlignLeft className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant={state.active.CenterPara ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("CenterPara")}
+          >
+            <AlignCenter className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant={state.active.RightPara ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("RightPara")}
+          >
+            <AlignRight className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant={state.active.JustifyPara ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("JustifyPara")}
+          >
+            <AlignJustify className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant={state.active.DefaultBullet ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("DefaultBullet")}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Download buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => downloadFile("btnOdt")}
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            ODT
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => downloadFile("btnPdf")}
+          >
+            <Download className="h-4 w-4 mr-1" />
+            PDF
+          </Button>
+        </div>
       </div>
+    );
+  }
+);
 
-      <div className="w-px h-6 bg-border" />
-
-      {/* Font family */}
-      <Select 
-        value={state.active.CharFontName} 
-        disabled={state.disabled}
-        onValueChange={(value) => {
-          toggleFormat('CharFontName', [['CharFontName.FamilyName', value]]);
-        }}
-      >
-        <SelectTrigger className="w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {state.font_name_list.map(fontName => (
-            <SelectItem key={fontName} value={fontName}>
-              {fontName}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <div className="w-px h-6 bg-border" />
-
-      {/* Alignment buttons */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={state.active.LeftPara ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('LeftPara')}
-        >
-          <AlignLeft className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.CenterPara ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('CenterPara')}
-        >
-          <AlignCenter className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.RightPara ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('RightPara')}
-        >
-          <AlignRight className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.JustifyPara ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('JustifyPara')}
-        >
-          <AlignJustify className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant={state.active.DefaultBullet ? "default" : "outline"}
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => toggleFormat('DefaultBullet')}
-        >
-          <List className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="w-px h-6 bg-border" />
-
-      {/* Download buttons */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => downloadFile('btnOdt')}
-        >
-          <FileText className="h-4 w-4 mr-1" />
-          ODT
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={state.disabled}
-          onClick={() => downloadFile('btnPdf')}
-        >
-          <Download className="h-4 w-4 mr-1" />
-          PDF
-        </Button>
-      </div>
-    </div>
-  );
-});
-
-ControlBar.displayName = 'ControlBar';
+ControlBar.displayName = "ControlBar";

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix --ignore-path .gitignore",
     "copy-zetajs": "node scripts/copy-zetajs.js"
-  },  "dependencies": {
+  },
+  "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@radix-ui/react-slot": "^1.0.2",
@@ -20,7 +21,8 @@
     "clsx": "^2.0.0",
     "lucide-react": "^0.294.0",
     "tailwind-merge": "^2.0.0"
-  },"devDependencies": {
+  },
+  "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
