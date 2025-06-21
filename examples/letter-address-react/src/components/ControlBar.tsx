@@ -9,10 +9,17 @@ import {
   Italic,
   List,
   Minus,
+  Palette,
   Plus,
+  Redo,
+  RefreshCw,
   Strikethrough,
+  Subscript,
+  Superscript,
   Type,
   Underline,
+  Undo,
+  Upload,
 } from "lucide-react";
 import React, {
   forwardRef,
@@ -34,6 +41,8 @@ declare global {
   interface Window {
     toggleFormatting: (id: string, value: any[]) => void;
     btnDownloadFunc: (format: string) => void;
+    btnUploadFunc: () => void;
+    btnReloadFunc: () => void;
   }
 }
 
@@ -54,6 +63,8 @@ interface ControlBarState {
     RightPara: boolean;
     JustifyPara: boolean;
     DefaultBullet: boolean;
+    SubScript: boolean;
+    SuperScript: boolean;
   };
   font_name_list: string[];
   disabled: boolean;
@@ -65,7 +76,7 @@ export interface ControlBarRef {
 }
 
 export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
-  (props, ref) => {
+  (_props, ref) => {
     const [state, setState] = useState<ControlBarState>({
       active: {
         Bold: false,
@@ -83,6 +94,8 @@ export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
         RightPara: false,
         JustifyPara: false,
         DefaultBullet: false,
+        SubScript: false,
+        SuperScript: false,
       },
       font_name_list: [],
       disabled: true,
@@ -131,7 +144,6 @@ export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
           >
             <Bold className="h-4 w-4" />
           </Button>
-
           <Button
             variant={state.active.Italic ? "default" : "outline"}
             size="sm"
@@ -139,8 +151,7 @@ export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
             onClick={() => toggleFormat("Italic")}
           >
             <Italic className="h-4 w-4" />
-          </Button>
-
+          </Button>{" "}
           <Button
             variant={state.active.Underline ? "default" : "outline"}
             size="sm"
@@ -149,7 +160,6 @@ export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
           >
             <Underline className="h-4 w-4" />
           </Button>
-
           <Button
             variant={state.active.Strikeout ? "default" : "outline"}
             size="sm"
@@ -157,6 +167,141 @@ export const ControlBar = forwardRef<ControlBarRef, { id?: string }>(
             onClick={() => toggleFormat("Strikeout")}
           >
             <Strikethrough className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={state.active.SubScript ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("SubScript")}
+          >
+            <Subscript className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={state.active.SuperScript ? "default" : "outline"}
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("SuperScript")}
+          >
+            <Superscript className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Color controls */}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center">
+            <label htmlFor="text-color" className="sr-only">
+              Text Color
+            </label>
+            <input
+              id="text-color"
+              type="color"
+              value={state.active.Color}
+              disabled={state.disabled}
+              onChange={(e) =>
+                toggleFormat("Color", [
+                  ["Color", parseInt(e.target.value.replace("#", ""), 16)],
+                ])
+              }
+              className="w-8 h-8 border border-border rounded cursor-pointer disabled:cursor-not-allowed"
+              title="Text Color"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <label htmlFor="background-color" className="sr-only">
+              Background Color
+            </label>
+            <input
+              id="background-color"
+              type="color"
+              value={state.active.CharBackColor}
+              disabled={state.disabled}
+              onChange={(e) =>
+                toggleFormat("CharBackColor", [
+                  [
+                    "CharBackColor",
+                    parseInt(e.target.value.replace("#", ""), 16),
+                  ],
+                ])
+              }
+              className="w-8 h-8 border border-border rounded cursor-pointer disabled:cursor-not-allowed"
+              title="Background Color"
+            />
+          </div>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Undo")}
+            title="Undo"
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => toggleFormat("Redo")}
+            title="Redo"
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="w-px h-6 bg-border" />
+
+        {/* File operations */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => {
+              const input = document.getElementById(
+                "file-upload"
+              ) as HTMLInputElement;
+              input?.click();
+            }}
+            title="Upload File"
+          >
+            <Upload className="h-4 w-4 mr-1" />
+            Upload
+          </Button>
+
+          <input
+            id="file-upload"
+            type="file"
+            accept=".odt"
+            className="hidden"
+            onChange={() => {
+              if (window.btnUploadFunc) {
+                window.btnUploadFunc();
+              }
+            }}
+          />
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={state.disabled}
+            onClick={() => {
+              if (window.btnReloadFunc) {
+                window.btnReloadFunc();
+              }
+            }}
+            title="Reload File"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Reload
           </Button>
         </div>
 

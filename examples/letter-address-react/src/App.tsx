@@ -56,64 +56,52 @@ const App: React.FC = () => {
       <div className="container mx-auto max-w-7xl p-0">
         <div className="mt-6 mb-4">
           <h1 className="text-3xl font-bold">ZetaJS: Word Editor React</h1>
-        </div>
-
+        </div>{" "}
         <div className="mt-4 space-y-4 border border-border rounded-lg p-4">
           <ControlBar ref={controlBarRef} id="controlbar" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div id="canvasCell" className="lg:col-span-3">
-              <div className="canvas-container relative">
-                <div id="loadingInfo" className="loading-info">
-                  <div className="spinner"></div>
-                  <h2 className="text-2xl font-semibold">
-                    ZetaOffice is loading...
-                  </h2>
-                </div>
-                <canvas
-                  id="qtcanvas"
-                  contentEditable="true"
-                  onContextMenu={(e) => e.preventDefault()}
-                  onKeyDown={(e) => e.preventDefault()}
-                  style={{
-                    width: "870px",
-                    height: "500px",
-                    visibility: "hidden",
-                  }}
-                  className="qt-canvas"
-                />
-              </div>
+          <div id="canvasCell" className="w-full">
+            <div className="canvas-container relative">
+              <div id="loadingInfo" className="loading-info">
+                <div className="spinner"></div>
+                <h2 className="text-2xl font-semibold">
+                  ZetaOffice is loading...
+                </h2>
+              </div>{" "}
+              <canvas
+                id="qtcanvas"
+                contentEditable="true"
+                onContextMenu={(e) => e.preventDefault()}
+                onKeyDown={(e) => e.preventDefault()}
+                style={{
+                  width: "100%",
+                  visibility: "hidden",
+                }}
+                className="qt-canvas"
+              />
             </div>
+          </div>
 
-            <div id="controlCell" className="lg:col-span-1 space-y-4">
-              <div>
-                <h4 className="text-lg font-semibold mb-2">Document</h4>
-                <div className="space-y-2">
-                  <label
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-8 px-3 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                    id="lblUpload"
-                  >
-                    Upload new file
-                    <input
-                      accept=".odt"
-                      className="file-input"
-                      type="file"
-                      id="btnUpload"
-                      onChange={() => window.btnUploadFunc?.()}
-                      disabled
-                    />
-                  </label>
-                  <button
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-8 px-3 ml-2 disabled:opacity-50 disabled:pointer-events-none"
-                    id="btnReload"
-                    onClick={() => window.btnReloadFunc?.()}
-                    disabled
-                  >
-                    Reload file
-                  </button>
-                </div>
-              </div>
-            </div>
+          {/* Hidden elements for pre_soffice.js compatibility */}
+          <div style={{ display: "none" }}>
+            <div id="controlCell"></div>
+            <label id="lblUpload">
+              <input
+                accept=".odt"
+                className="file-input"
+                type="file"
+                id="btnUpload"
+                onChange={() => window.btnUploadFunc?.()}
+                disabled
+              />
+            </label>
+            <button
+              id="btnReload"
+              onClick={() => window.btnReloadFunc?.()}
+              disabled
+            >
+              Reload file
+            </button>
           </div>
         </div>
       </div>

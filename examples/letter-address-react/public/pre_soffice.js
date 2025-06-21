@@ -12,10 +12,22 @@ const controlCell = document.getElementById("controlCell");
 const canvasCell = document.getElementById("canvasCell");
 const lblUpload = document.getElementById("lblUpload");
 const btnUpload = document.getElementById("btnUpload");
+const fileUpload = document.getElementById("file-upload"); // The actual file input
 const btnReload = document.getElementById("btnReload");
 const disabledElementsAry = [btnUpload, btnReload];
-const canvas_height = parseInt(canvas.style.height);
-const canvas_width = parseInt(canvas.style.width);
+
+// Dynamic canvas sizing
+function getCanvasDimensions() {
+  const container = canvas.parentElement;
+  const containerWidth = container.clientWidth;
+  const containerHeight = Math.max(600, window.innerHeight * 0.6);
+  return {
+    width: Math.max(800, containerWidth - 40), // Minimum 800px with some padding
+    height: containerHeight,
+  };
+}
+
+const { width: canvas_width, height: canvas_height } = getCanvasDimensions();
 
 // IMPORTANT:
 // Set base URL to the soffice.* files.
@@ -28,6 +40,25 @@ const zHM = new ZetaHelperMain("office_thread.js", {
   threadJsType: "module",
   wasmPkg,
 });
+
+// Handle canvas resizing
+function updateCanvasSize() {
+  const dimensions = getCanvasDimensions();
+  canvas.style.width = dimensions.width + "px";
+  canvas.style.height = dimensions.height + "px";
+}
+
+// Update canvas size on window resize
+window.addEventListener("resize", () => {
+  updateCanvasSize();
+  // Trigger ZetaJS resize event
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 100);
+});
+
+// Set initial canvas size
+updateCanvasSize();
 
 // Functions stored below window.* are usually accessed from React.
 
@@ -69,13 +100,71 @@ window.btnDownloadFunc = (btnId) => {
 
 window.btnUploadFunc = () => {
   // window....: make it accessible to React
+  const fileInput = document.getElementById("file-upload");
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+    console.error("No file selected for upload");
+    return;
+  }
+
+  const selectedFile = fileInput.files[0];
+  console.log(
+    "Selected file:",
+    selectedFile.name,
+    "Type:",
+    selectedFile.type,
+    "Size:",
+    selectedFile.size
+  );
+
+  // Check if it's an ODT file
+  if (!selectedFile.name.toLowerCase().endsWith(".odt")) {
+    console.warn(
+      "Warning: File doesn't have .odt extension. This might cause issues."
+    );
+  }
+
   for (const elem of disabledElementsAry) elem.disabled = true;
   lblUpload?.classList.add("disabled");
   const filename = "letter.odt";
-  btnUpload.files[0].arrayBuffer().then((aryBuf) => {
-    zHM.FS.writeFile("/tmp/" + filename, new Uint8Array(aryBuf));
-    btnReloadFunc();
-  });
+  console.log("Starting file upload...");
+
+  selectedFile
+    .arrayBuffer()
+    .then((aryBuf) => {
+      console.log("File read, size:", aryBuf.byteLength, "bytes");
+
+      // Verify the file was read correctly
+      if (aryBuf.byteLength === 0) {
+        console.error("File is empty or couldn't be read");
+        return;
+      }
+
+      console.log("Writing file to filesystem...");
+      zHM.FS.writeFile("/tmp/" + filename, new Uint8Array(aryBuf));
+      console.log("File written to /tmp/" + filename);
+
+      // Verify the file was written
+      try {
+        const writtenFile = zHM.FS.readFile("/tmp/" + filename);
+        console.log(
+          "Verification: File size on filesystem:",
+          writtenFile.length,
+          "bytes"
+        );
+      } catch (e) {
+        console.error("Error verifying written file:", e);
+      }
+
+      btnReloadFunc();
+    })
+    .catch((error) => {
+      console.error("Error reading file:", error);
+      // Re-enable controls on error
+      for (const elem of disabledElementsAry) {
+        if (elem) elem.disabled = false;
+      }
+      lblUpload?.classList.remove("disabled");
+    });
 };
 
 window.btnReloadFunc = () => {
@@ -103,12 +192,23 @@ zHM.start(() => {
         window.dispatchEvent(new Event("resize"));
         setTimeout(() => {
           // display Office UI properly
-          console.log("Enabling toolbar and UI elements"); // Handle loading info and canvas visibility - word editor only
+          console.log("Enabling toolbar and UI elements");
+          // Handle loading info and canvas visibility - word editor only
           const currentCanvas = document.getElementById("qtcanvas");
           const currentLoading = document.getElementById("loadingInfo");
 
-          if (currentLoading) currentLoading.style.display = "none";
-          if (currentCanvas) currentCanvas.style.visibility = null;
+          if (currentLoading) {
+            currentLoading.style.display = "none";
+            console.log("Loading info hidden");
+          }
+          if (currentCanvas) {
+            currentCanvas.style.visibility = null;
+            console.log("Canvas made visible");
+            // Force a repaint of the canvas
+            currentCanvas.style.display = "none";
+            currentCanvas.offsetHeight; // Trigger reflow
+            currentCanvas.style.display = "";
+          }
 
           if (tbDataJs && tbDataJs.setState) {
             tbDataJs.setState((prevState) => ({
@@ -126,8 +226,13 @@ zHM.start(() => {
             if (elem) elem.disabled = false;
           }
           lblUpload?.classList.remove("disabled");
-          // Remove btnInsert reference since we removed address functionality
           console.log("All UI elements enabled");
+
+          // Force another resize event to ensure proper display
+          setTimeout(() => {
+            window.dispatchEvent(new Event("resize"));
+            console.log("Final resize event dispatched");
+          }, 500);
         }, 1000); // milliseconds
         break;
       case "resizeEvt":

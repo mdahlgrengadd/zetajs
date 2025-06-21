@@ -59,12 +59,13 @@ function demo() {
         zHT.thrPort.postMessage({ cmd: "download", id: e.data.id });
         break;
       case "reload":
+        console.log("Reload command received, closing current document");
         letterXModel.close(true);
+        // Reset ready state for reload so UI gets properly re-enabled
+        readyList.Fonts = false;
+        readyList.Window = false;
+        console.log("Loading file from /tmp/letter.odt");
         loadFile("letter");
-        break;
-      case "upload":
-        letterXModel.close(true);
-        loadFile("letter", e.data.filename, e.data.aryBuf);
         break;
       case "toggleFormat":
         const params = [];
@@ -85,12 +86,14 @@ function demo() {
 
 function loadFile(fileTab) {
   // Load letter document only (word editor)
+  console.log("loadFile called, loading file:///tmp/letter.odt");
   letterXModel = desktop.loadComponentFromURL(
     "file:///tmp/letter.odt",
     "_default",
     0,
     []
   );
+  console.log("Document loaded successfully");
   letterCtrl = letterXModel.getCurrentController();
   if (!writerModuleConfigured) {
     writerModuleConfigured = true; // Permanant Writer module toggles. Don't run again on a document reload.
@@ -118,7 +121,6 @@ function loadFile(fileTab) {
     },
   });
   fontsDispatchNotifier.addStatusListener(fontListener, fontsUrlObj);
-
   for (const id of [
     "Bold",
     "Italic",
@@ -135,6 +137,10 @@ function loadFile(fileTab) {
     "DefaultBullet",
     "FontHeight",
     "CharFontName",
+    "SubScript",
+    "SuperScript",
+    "Undo",
+    "Redo",
   ]) {
     const urlObj = zHT.transformUrl(id);
     const listener = zetajs.unoObject([css.frame.XStatusListener], {
