@@ -1,7 +1,8 @@
 {
   "name": "zetajs-example-letter",
   "version": "1.0.0",
-  "description": "Example how to use zetajs to insert addresses in LibreOffice Writer",  "scripts": {
+  "description": "Example how to use zetajs to insert addresses in LibreOffice Writer",
+  "scripts": {
     "start": "npx gulp start",
     "debug": "npx gulp debug",
     "dist": "npx gulp",

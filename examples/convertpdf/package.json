@@ -1,7 +1,8 @@
 {
   "name": "zetajs-example-convertpdf",
   "version": "1.0.0",
-  "description": "Example how to use zetajs to convert a document to PDF fully client-side",  "scripts": {
+  "description": "Example how to use zetajs to convert a document to PDF fully client-side",
+  "scripts": {
     "start": "npx gulp start",
     "start-nobrowser": "npx gulp start --nobrowser",
     "debug": "npx gulp debug",

@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
+    "start": "npm run copy-zetajs && vite",
+    "dev": "npm run copy-zetajs && vite",
+    "build": "npm run copy-zetajs && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "copy-zetajs": "node scripts/copy-zetajs.js"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",

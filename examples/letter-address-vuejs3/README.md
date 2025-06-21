@@ -19,9 +19,13 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ## Project Setup
 
+First, install the dependencies:
+
 ```sh
 npm install
 ```
+
+The project includes an automatic build step that copies the required ZetaJS files from the main source directory. This happens automatically when you run any of the development or build commands.
 
 ### Compile and Hot-Reload for Development
 

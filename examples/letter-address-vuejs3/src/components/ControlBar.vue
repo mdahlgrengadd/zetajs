@@ -199,23 +199,40 @@ export default {
       });
     },
     font_name_menu() {
-      return this.font_name_list.map(font_name => {
-        return {
+      return this.font_name_list.map(font_name => {        return {
           html: font_name,
           /* icon: (this.theme != "default" && this.active['CharFontName'] == font_name) ? 'check' : false, */
           active: (this.active['CharFontName'] == font_name),
           click: () => {
-            toggleFormatting('CharFontName', [['CharFontName.FamilyName', font_name]]),
+            toggleFormatting('CharFontName', [['CharFontName.FamilyName', font_name]]);
             this.active['CharFontName'] = font_name;
           }
         };
       });
-    },
-    // "DejaVu Sans, DejaVu Serif, Liberation Sans, Liberation Serif, Linux Biolinum G, Linux Libertine G, Noto Sans, Noto Serif, Open Symbol".split(",").map((x) => x.trim()),
+    }
+    // Alternative font list: "DejaVu Sans, DejaVu Serif, Liberation Sans, Liberation Serif, Linux Biolinum G, Linux Libertine G, Noto Sans, Noto Serif, Open Symbol".split(",").map((x) => x.trim())
   },
-  init_control_bar: function() {
-    jsPassCtrlBar(tbDataForJs);
+  mounted() {
+    // Store reference to this component globally so pre_soffice.js can access it
+    window.vueControlBarComponent = this;
+    
+    // Call the global jsPassCtrlBar function once the component is mounted
+    if (window.jsPassCtrlBar) {
+      console.log('Calling jsPassCtrlBar with Vue component');
+      window.jsPassCtrlBar(this);
+    } else {
+      console.log('jsPassCtrlBar not available yet, will be called when pre_soffice.js loads');
+    }
   },
+  methods: {
+    init_control_bar: function() {
+      // This method can be called externally if needed
+      console.log('init_control_bar called');
+      if (window.jsPassCtrlBar) {
+        window.jsPassCtrlBar(this);
+      }
+    }
+  }
 };
 </script>
 

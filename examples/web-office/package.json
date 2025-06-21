@@ -1,7 +1,8 @@
 {
   "name": "web-office",
   "version": "1.0.0",
-  "description": "An example of how to run a full ZetaOffice / LibreOffice in the web browser.",  "scripts": {
+  "description": "An example of how to run a full ZetaOffice / LibreOffice in the web browser.",
+  "scripts": {
     "start": "npx gulp start",
     "debug": "npx gulp debug",
     "dist": "npx gulp",
